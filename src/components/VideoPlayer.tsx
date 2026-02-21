@@ -67,6 +67,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true
         backBufferLength: 90,
         maxBufferLength: 30,
         maxMaxBufferLength: 600,
+        debug: false, // Set to true if you want to see detailed HLS logs in console
         xhrSetup: (xhr) => {
           xhr.withCredentials = false;
         }
@@ -101,17 +102,19 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (!isSubscribed) return;
         console.error("HLS Error:", data);
+        
         if (data.fatal) {
-          setLoading(false);
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              setError(`Network error (${data.details}): The stream could not be reached. Check if the URL is correct and the stream is online.`);
+              console.log("Fatal network error, trying to recover...");
+              hls.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
-              setError("Media error: The stream format is incompatible or corrupted.");
+              console.log("Fatal media error, trying to recover...");
               hls.recoverMediaError();
               break;
             default:
+              setLoading(false);
               setError(`Playback error: ${data.details || 'Unknown error'}`);
               hls.destroy();
               break;
@@ -175,7 +178,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true
         className="w-full h-full object-contain"
         controls
         playsInline
-        muted={autoPlay} // Mute by default if autoplay is enabled to satisfy browser policies
+        muted={autoPlay}
+        crossOrigin="anonymous"
       />
 
       {loading && !error && (

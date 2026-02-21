@@ -48,13 +48,21 @@ async function startServer() {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
           'Accept': '*/*',
           'Accept-Language': 'en-US,en;q=0.9',
+          'Connection': 'keep-alive',
         }
       };
 
-      // Pass through Range header if present (important for some video segments)
+      // Pass through Range header if present
       if (req.headers.range) {
         (fetchOptions.headers as any)['Range'] = req.headers.range;
       }
+
+      // Some providers require Referer to be the origin of the stream
+      try {
+        const urlObj = new URL(url);
+        (fetchOptions.headers as any)['Referer'] = urlObj.origin;
+        (fetchOptions.headers as any)['Origin'] = urlObj.origin;
+      } catch (e) {}
 
       const response = await fetch(url, fetchOptions);
       
@@ -69,8 +77,8 @@ async function startServer() {
       if (response.headers.get("Accept-Ranges")) res.set("Accept-Ranges", response.headers.get("Accept-Ranges")!);
       if (response.headers.get("Content-Length")) res.set("Content-Length", response.headers.get("Content-Length")!);
       
-      // If it's an M3U8 manifest, we need to rewrite URLs to also go through the proxy
-      if (contentType.includes("mpegurl") || contentType.includes("apple.mpegurl") || url.includes(".m3u8")) {
+      // If it's an M3U8 manifest, we need to rewrite URLs
+      if (contentType.includes("mpegurl") || contentType.includes("apple.mpegurl") || url.includes(".m3u8") || url.includes(".m3u")) {
         let text = await response.text();
         const parsedUrl = new URL(url);
         const baseUrl = parsedUrl.origin + parsedUrl.pathname.substring(0, parsedUrl.pathname.lastIndexOf('/') + 1);
@@ -79,7 +87,6 @@ async function startServer() {
         const rewrittenLines = lines.map(line => {
           const trimmed = line.trim();
           if (!trimmed || trimmed.startsWith('#')) {
-            // Handle URI= attributes in tags (like #EXT-X-KEY or #EXT-X-MEDIA)
             if (trimmed.includes('URI="')) {
               return trimmed.replace(/URI="([^"]+)"/g, (match, p1) => {
                 let absoluteAttrUrl = p1;
@@ -105,16 +112,29 @@ async function startServer() {
         return res.send(rewrittenLines.join('\n'));
       }
 
-      // For segments (.ts) or other binary data, just pipe it
+      // For segments or other binary data
       res.set("Content-Type", contentType);
       res.set("Access-Control-Allow-Origin", "*");
       res.set("Cache-Control", "public, max-age=3600");
       
-      const buffer = await response.arrayBuffer();
-      res.send(Buffer.from(buffer));
+      if (response.body) {
+        // Use the native response body for streaming if possible
+        const reader = response.body.getReader();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          res.write(value);
+        }
+        res.end();
+      } else {
+        const buffer = await response.arrayBuffer();
+        res.send(Buffer.from(buffer));
+      }
     } catch (error: any) {
       console.error("Proxy Error:", error.message);
-      res.status(500).send(error.message);
+      if (!res.headersSent) {
+        res.status(500).send(error.message);
+      }
     }
   });
 
