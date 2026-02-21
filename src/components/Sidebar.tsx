@@ -30,13 +30,21 @@ const ChannelItem = ({
   };
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(entry)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect(entry);
+        }
+      }}
       className={cn(
-        "w-full flex items-center gap-3 p-2 rounded-lg transition-all text-left group relative",
+        "w-full flex items-center gap-3 p-2 rounded-lg transition-all text-left group relative cursor-pointer outline-none",
         isActive 
           ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
-          : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200 border border-transparent"
+          : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200 border border-transparent focus:bg-zinc-900 focus:text-zinc-200"
       )}
     >
       <div className="relative flex-shrink-0 w-10 h-10 bg-zinc-900 rounded overflow-hidden border border-zinc-800">
@@ -72,12 +80,12 @@ const ChannelItem = ({
       
       <button
         onClick={handleCopy}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded bg-zinc-950/80 text-zinc-500 opacity-0 group-hover:opacity-100 hover:text-white transition-all"
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded bg-zinc-950/80 text-zinc-500 opacity-0 group-hover:opacity-100 hover:text-white transition-all focus:opacity-100 outline-none focus:ring-1 focus:ring-emerald-500"
         title="Copy Stream URL"
       >
         {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
       </button>
-    </button>
+    </div>
   );
 };
 
@@ -98,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ entries, onSelect, currentEntr
       <div className="p-4 border-b border-zinc-800 space-y-4">
         <div className="flex items-center gap-2 text-emerald-500 mb-2">
           <Tv size={24} />
-          <h1 className="text-xl font-bold tracking-tight text-white">StreamPlay</h1>
+          <h1 className="text-xl font-bold tracking-tight text-white">Flux TV</h1>
         </div>
         
         <div className="relative">

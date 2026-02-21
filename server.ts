@@ -8,6 +8,12 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Request logging middleware
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+  });
+
   // Proxy endpoint to fetch M3U files and avoid CORS
   app.get("/api/proxy-m3u", async (req, res) => {
     const url = req.query.url as string;
@@ -67,6 +73,12 @@ async function startServer() {
       res.sendFile(path.resolve("dist", "index.html"));
     });
   }
+
+  // Global error handler
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Unhandled Error:', err);
+    res.status(500).json({ error: err.message || 'Internal Server Error' });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);

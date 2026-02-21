@@ -3,6 +3,8 @@ import { Plus, Settings, Info, Github } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { VideoPlayer } from './components/VideoPlayer';
 import { ImportModal } from './components/ImportModal';
+import { SettingsModal } from './components/SettingsModal';
+import { AboutModal } from './components/AboutModal';
 import { M3UEntry } from './utils/m3uParser';
 import { motion } from 'motion/react';
 
@@ -10,23 +12,50 @@ export default function App() {
   const [entries, setEntries] = useState<M3UEntry[]>([]);
   const [currentEntry, setCurrentEntry] = useState<M3UEntry | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [settings, setSettings] = useState({
+    autoPlay: true,
+    useProxyByDefault: false
+  });
 
-  // Load saved playlist from localStorage
+  // Load saved playlist and settings from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('streamplay_playlist');
-    if (saved) {
+    const savedPlaylist = localStorage.getItem('fluxtv_playlist');
+    if (savedPlaylist) {
       try {
-        const parsed = JSON.parse(saved);
-        setEntries(parsed);
+        setEntries(JSON.parse(savedPlaylist));
       } catch (e) {
         console.error('Failed to load saved playlist', e);
       }
     }
+
+    const savedSettings = localStorage.getItem('fluxtv_settings');
+    if (savedSettings) {
+      try {
+        setSettings(JSON.parse(savedSettings));
+      } catch (e) {
+        console.error('Failed to load settings', e);
+      }
+    }
   }, []);
+
+  const handleUpdateSettings = (newSettings: any) => {
+    setSettings(newSettings);
+    localStorage.setItem('fluxtv_settings', JSON.stringify(newSettings));
+  };
+
+  const handleClearAllData = () => {
+    setEntries([]);
+    setCurrentEntry(null);
+    localStorage.removeItem('fluxtv_playlist');
+    localStorage.removeItem('fluxtv_settings');
+    setSettings({ autoPlay: true, useProxyByDefault: false });
+  };
 
   const handleImport = (newEntries: M3UEntry[]) => {
     setEntries(newEntries);
-    localStorage.setItem('streamplay_playlist', JSON.stringify(newEntries));
+    localStorage.setItem('fluxtv_playlist', JSON.stringify(newEntries));
     if (newEntries.length > 0) {
       setCurrentEntry(newEntries[0]);
     }
@@ -36,7 +65,7 @@ export default function App() {
     if (confirm('Are you sure you want to clear your playlist?')) {
       setEntries([]);
       setCurrentEntry(null);
-      localStorage.removeItem('streamplay_playlist');
+      localStorage.removeItem('fluxtv_playlist');
     }
   };
 
@@ -81,10 +110,16 @@ export default function App() {
             
             <div className="w-px h-6 bg-zinc-800 mx-2" />
             
-            <button className="p-2 text-zinc-500 hover:text-white transition-colors">
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 text-zinc-500 hover:text-white transition-colors"
+            >
               <Settings size={20} />
             </button>
-            <button className="p-2 text-zinc-500 hover:text-white transition-colors">
+            <button 
+              onClick={() => setIsAboutOpen(true)}
+              className="p-2 text-zinc-500 hover:text-white transition-colors"
+            >
               <Info size={20} />
             </button>
           </div>
@@ -92,7 +127,7 @@ export default function App() {
 
         {/* Player Area */}
         <div className="flex-1 min-h-0 relative">
-          <VideoPlayer entry={currentEntry} />
+          <VideoPlayer entry={currentEntry} autoPlay={settings.autoPlay} forceProxy={settings.useProxyByDefault} />
           
           {entries.length === 0 && (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
@@ -105,7 +140,7 @@ export default function App() {
                   <Plus size={48} className="text-emerald-500" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-bold text-white">Welcome to StreamPlay</h2>
+                  <h2 className="text-2xl font-bold text-white">Welcome to Flux TV</h2>
                   <p className="text-zinc-500">
                     Import an M3U playlist from a URL or upload a file to start watching your favorite streams.
                   </p>
@@ -138,6 +173,19 @@ export default function App() {
         isOpen={isImportModalOpen} 
         onClose={() => setIsImportModalOpen(false)} 
         onImport={handleImport}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onUpdateSettings={handleUpdateSettings}
+        onClearData={handleClearAllData}
+      />
+
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
       />
     </div>
   );

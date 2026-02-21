@@ -5,19 +5,21 @@ import { M3UEntry } from '../utils/m3uParser';
 
 interface VideoPlayerProps {
   entry: M3UEntry | null;
+  autoPlay?: boolean;
+  forceProxy?: boolean;
 }
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true, forceProxy = false }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isMixedContent, setIsMixedContent] = useState(false);
-  const [useProxy, setUseProxy] = useState(false);
+  const [useProxy, setUseProxy] = useState(forceProxy);
 
   useEffect(() => {
     setError(null);
-    setUseProxy(false);
+    setUseProxy(forceProxy);
     setLoading(false);
     
     if (entry?.url.startsWith('http:')) {
@@ -59,9 +61,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry }) => {
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setLoading(false);
-        video.play().catch(e => {
-          console.error("Auto-play failed:", e);
-        });
+        if (autoPlay) {
+          video.play().catch(e => {
+            console.error("Auto-play failed:", e);
+          });
+        }
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
@@ -87,17 +91,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry }) => {
       // Fallback for non-HLS or native support
       video.src = streamUrl;
       video.load();
-      video.play().then(() => {
+      if (autoPlay) {
+        video.play().then(() => {
+          setLoading(false);
+        }).catch(e => {
+          console.error("Native playback failed:", e);
+          setLoading(false);
+          setError("Playback failed. This stream might require a specific player or is currently unavailable.");
+        });
+      } else {
         setLoading(false);
-      }).catch(e => {
-        console.error("Native playback failed:", e);
-        if (!entry.url.includes('.m3u8') && !useProxy) {
-           // If it failed and it's not HLS, maybe it IS HLS but without extension? 
-           // We already tried HLS.js if it was supported.
-        }
-        setLoading(false);
-        setError("Playback failed. This stream might require a specific player or is currently unavailable.");
-      });
+      }
     }
 
     return () => {
