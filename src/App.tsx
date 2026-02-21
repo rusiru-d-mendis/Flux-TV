@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, Settings, Info, Github } from 'lucide-react';
+import { Plus, Settings, Info, Github, Menu, X } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { VideoPlayer } from './components/VideoPlayer';
 import { ImportModal } from './components/ImportModal';
 import { SettingsModal } from './components/SettingsModal';
 import { AboutModal } from './components/AboutModal';
 import { M3UEntry } from './utils/m3uParser';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [entries, setEntries] = useState<M3UEntry[]>([]);
@@ -14,10 +14,19 @@ export default function App() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [settings, setSettings] = useState({
     autoPlay: true,
     useProxyByDefault: false
   });
+
+  // Close sidebar when entry is selected on mobile
+  const handleSelectEntry = (entry: M3UEntry) => {
+    setCurrentEntry(entry);
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   // Load saved playlist and settings from localStorage
   useEffect(() => {
@@ -70,45 +79,70 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-zinc-200 overflow-hidden font-sans selection:bg-emerald-500/30">
+    <div className="flex h-screen bg-zinc-950 text-zinc-200 overflow-hidden font-sans selection:bg-emerald-500/30 relative">
+      {/* Sidebar Overlay for Mobile */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
-      <Sidebar 
-        entries={entries} 
-        onSelect={setCurrentEntry} 
-        currentEntry={currentEntry} 
-        onClear={handleClear}
-      />
+      <div className={`
+        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <Sidebar 
+          entries={entries} 
+          onSelect={handleSelectEntry} 
+          currentEntry={currentEntry} 
+          onClear={handleClear}
+        />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col relative min-w-0">
+      <main className="flex-1 flex flex-col relative min-w-0 w-full">
         {/* Header */}
-        <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-6 bg-zinc-950/50 backdrop-blur-md z-10">
-          <div className="flex items-center gap-4">
+        <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-4 md:px-6 bg-zinc-950/50 backdrop-blur-md z-10">
+          <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="p-2 -ml-2 text-zinc-400 hover:text-white md:hidden"
+            >
+              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+
             {currentEntry && (
               <motion.div 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-3"
+                className="flex items-center gap-2 md:gap-3 overflow-hidden"
               >
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-sm font-medium text-zinc-400">Now Playing:</span>
-                <span className="text-sm font-bold text-white truncate max-w-[200px] md:max-w-md">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                <span className="text-xs md:text-sm font-medium text-zinc-400 hidden sm:inline">Now Playing:</span>
+                <span className="text-sm font-bold text-white truncate max-w-[150px] sm:max-w-[200px] md:max-w-md">
                   {currentEntry.name}
                 </span>
               </motion.div>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             <button
               onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold transition-all shadow-lg shadow-emerald-900/20 active:scale-95"
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all shadow-lg shadow-emerald-900/20 active:scale-95"
             >
               <Plus size={18} />
-              <span className="hidden sm:inline">Import Playlist</span>
+              <span className="hidden sm:inline">Import</span>
             </button>
             
-            <div className="w-px h-6 bg-zinc-800 mx-2" />
+            <div className="w-px h-6 bg-zinc-800 mx-1 md:mx-2" />
             
             <button 
               onClick={() => setIsSettingsOpen(true)}

@@ -238,28 +238,28 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true
       )}
       
       {/* Custom Overlay for Channel Info and Quality */}
-      <div className="absolute top-0 left-0 right-0 p-6 bg-gradient-to-b from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-        <div className="flex items-start justify-between w-full">
-          <div className="flex items-center gap-4">
+      <div className="absolute top-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-b from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        <div className="flex items-start justify-between w-full gap-2">
+          <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
             {entry.logo && (
               <img 
                 src={entry.logo} 
                 alt={entry.name} 
-                className="w-12 h-12 object-contain bg-white/10 rounded p-1"
+                className="w-10 h-10 md:w-12 md:h-12 object-contain bg-white/10 rounded p-1 flex-shrink-0"
                 referrerPolicy="no-referrer"
               />
             )}
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-white">{entry.name}</h2>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base md:text-xl font-bold text-white truncate">{entry.name}</h2>
                 {useProxy && (
-                  <span className="px-1.5 py-0.5 bg-emerald-500 text-zinc-950 text-[10px] font-bold rounded uppercase tracking-tighter">
+                  <span className="px-1.5 py-0.5 bg-emerald-500 text-zinc-950 text-[8px] md:text-[10px] font-bold rounded uppercase tracking-tighter flex-shrink-0">
                     Proxy Active
                   </span>
                 )}
               </div>
               {entry.group && (
-                <span className="text-xs uppercase tracking-wider text-zinc-400 font-semibold">
+                <span className="text-[10px] md:text-xs uppercase tracking-wider text-zinc-400 font-semibold truncate block">
                   {entry.group}
                 </span>
               )}

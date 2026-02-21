@@ -102,11 +102,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ entries, onSelect, currentEntr
   });
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 border-r border-zinc-800 w-80">
+    <div className={cn(
+      "flex flex-col h-full bg-zinc-950 border-r border-zinc-800 w-72 sm:w-80 flex-shrink-0 transition-all",
+      search || selectedGroup ? "bg-zinc-950" : "bg-zinc-950"
+    )}>
       <div className="p-4 border-b border-zinc-800 space-y-4">
-        <div className="flex items-center gap-2 text-emerald-500 mb-2">
-          <Tv size={24} />
-          <h1 className="text-xl font-bold tracking-tight text-white">Flux TV</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-emerald-500">
+            <Tv size={24} />
+            <h1 className="text-xl font-bold tracking-tight text-white">Flux TV</h1>
+          </div>
         </div>
         
         <div className="relative">
