@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ entries, onSelect, currentEntr
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-emerald-500">
             <Tv size={24} />
-            <h1 className="text-xl font-bold tracking-tight text-white">Flux TV</h1>
+            <h1 className="text-xl font-bold tracking-tight text-white">UniStream</h1>
           </div>
         </div>
         

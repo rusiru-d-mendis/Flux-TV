@@ -1,16 +1,16 @@
-# Flux TV | Modern IPTV Player
+# UniStream | Modern IPTV Player
 
-Flux TV is a premium, high-performance web-based IPTV player designed for the modern era. Built with a focus on speed, reliability, and a "crafted" user experience, it allows you to stream your favorite live channels directly in your browser or as an installed app.
+UniStream is a premium, high-performance web-based IPTV player designed for the modern era. Built with a focus on speed, reliability, and a "crafted" user experience, it allows you to stream your favorite live channels directly in your browser or as an installed app.
 
 ## 📺 Project Description
 
-Flux TV provides a seamless interface for managing and viewing M3U playlists. It solves common IPTV streaming issues like CORS restrictions and Mixed Content blocks through a custom-built recursive proxy system. Whether you're watching on a desktop or a mobile device, Flux TV delivers a native-app feel with advanced playback controls and intuitive navigation.
+UniStream provides a seamless interface for managing and viewing M3U playlists. It solves common IPTV streaming issues like CORS restrictions and Mixed Content blocks through a custom-built recursive proxy system. Whether you're watching on a desktop or a mobile device, UniStream delivers a native-app feel with advanced playback controls and intuitive navigation.
 
 ## ✨ Key Features
 
 - **Adaptive Streaming**: Full HLS support with automatic and manual quality selection (144p to 1080p).
 - **Smart Proxy System**: Built-in recursive proxy to bypass CORS and Mixed Content (HTTPS/HTTP) issues.
-- **PWA Ready**: Install Flux TV on your home screen for a full-screen, standalone experience.
+- **PWA Ready**: Install UniStream on your home screen for a full-screen, standalone experience.
 - **Group Organization**: Automatically categorizes channels based on playlist metadata.
 - **Search & Filter**: Quickly find channels across thousands of entries.
 - **Modern UI**: Dark-mode first design with smooth animations and responsive layouts.

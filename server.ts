@@ -45,11 +45,12 @@ async function startServer() {
     try {
       const fetchOptions: RequestInit = {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'User-Agent': 'VLC/3.0.20',
           'Accept': '*/*',
           'Accept-Language': 'en-US,en;q=0.9',
           'Connection': 'keep-alive',
-        }
+        },
+        redirect: 'follow'
       };
 
       // Pass through Range header if present
@@ -60,11 +61,14 @@ async function startServer() {
       // Some providers require Referer to be the origin of the stream
       try {
         const urlObj = new URL(url);
-        (fetchOptions.headers as any)['Referer'] = urlObj.origin;
+        (fetchOptions.headers as any)['Referer'] = urlObj.origin + '/';
         (fetchOptions.headers as any)['Origin'] = urlObj.origin;
       } catch (e) {}
 
       const response = await fetch(url, fetchOptions);
+      
+      // If the response was redirected, we might need the final URL for relative path resolution
+      const finalUrl = response.url || url;
       
       if (!response.ok && response.status !== 206) {
         return res.status(response.status).send(`Target returned ${response.status}`);
@@ -78,9 +82,25 @@ async function startServer() {
       if (response.headers.get("Content-Length")) res.set("Content-Length", response.headers.get("Content-Length")!);
       
       // If it's an M3U8 manifest, we need to rewrite URLs
-      if (contentType.includes("mpegurl") || contentType.includes("apple.mpegurl") || url.includes(".m3u8") || url.includes(".m3u")) {
+      const isManifest = contentType.includes("mpegurl") || 
+                         contentType.includes("apple.mpegurl") || 
+                         contentType.includes("application/x-mpegURL") ||
+                         contentType.includes("text/plain") || // Some providers use text/plain for manifests
+                         finalUrl.toLowerCase().includes(".m3u8") || 
+                         finalUrl.toLowerCase().includes(".m3u");
+
+      if (isManifest) {
         let text = await response.text();
-        const parsedUrl = new URL(url);
+        
+        // Basic validation that it looks like a manifest
+        if (!text.trim().startsWith('#EXTM3U')) {
+           // Not a manifest, just pipe it
+           res.set("Content-Type", contentType);
+           res.set("Access-Control-Allow-Origin", "*");
+           return res.send(text);
+        }
+
+        const parsedUrl = new URL(finalUrl);
         const baseUrl = parsedUrl.origin + parsedUrl.pathname.substring(0, parsedUrl.pathname.lastIndexOf('/') + 1);
         
         const lines = text.split('\n');

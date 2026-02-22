@@ -25,6 +25,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true
   const [levels, setLevels] = useState<QualityLevel[]>([]);
   const [currentLevel, setCurrentLevel] = useState<number>(-1); // -1 is Auto
   const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     setError(null);
@@ -33,6 +34,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true
     setLevels([]);
     setCurrentLevel(-1);
     setShowQualityMenu(false);
+    setRetryCount(0);
     
     if (entry?.url.startsWith('http:')) {
       setIsMixedContent(window.location.protocol === 'https:');
@@ -106,16 +108,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              console.log("Fatal network error, trying to recover...");
-              hls.startLoad();
+              if (data.details === 'manifestLoadError') {
+                setLoading(false);
+                setError(`Network error (manifestLoadError): The stream could not be reached. This often happens due to CORS or the stream being offline.`);
+              } else {
+                console.log("Fatal network error, trying to recover...");
+                hls.startLoad();
+              }
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
               console.log("Fatal media error, trying to recover...");
               hls.recoverMediaError();
               break;
             default:
+              // If HLS fails fatally and we haven't tried native yet, maybe try native?
+              console.log("Fatal HLS error, attempting native fallback...");
               setLoading(false);
-              setError(`Playback error: ${data.details || 'Unknown error'}`);
+              setError(`Playback error: ${data.details || 'Unknown error'}. Try using the proxy or check if the stream is online.`);
               hls.destroy();
               break;
           }
@@ -152,7 +161,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true
       video.removeAttribute('src');
       video.load();
     };
-  }, [entry, useProxy, autoPlay]);
+  }, [entry, useProxy, autoPlay, retryCount]);
 
   const handleLevelChange = (levelId: number) => {
     if (hlsRef.current) {
@@ -216,6 +225,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ entry, autoPlay = true
               </div>
             )}
             
+            <button 
+              onClick={() => { setError(null); setRetryCount(prev => prev + 1); }}
+              className="flex items-center justify-center gap-2 bg-zinc-100 hover:bg-white text-zinc-950 px-6 py-2 rounded-full transition-all font-bold"
+            >
+              <RefreshCw size={18} />
+              Retry Now
+            </button>
+
             {!useProxy && (
               <button 
                 onClick={() => { setError(null); setUseProxy(true); }}

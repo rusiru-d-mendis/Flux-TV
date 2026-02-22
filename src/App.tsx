@@ -174,7 +174,7 @@ export default function App() {
                   <Plus size={48} className="text-emerald-500" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-bold text-white">Welcome to Flux TV</h2>
+                  <h2 className="text-2xl font-bold text-white">Welcome to UniStream</h2>
                   <p className="text-zinc-500">
                     Import an M3U playlist from a URL or upload a file to start watching your favorite streams.
                   </p>

@@ -21,7 +21,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
             <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
               <div className="flex items-center gap-2 text-white">
                 <Info size={20} className="text-emerald-500" />
-                <h2 className="text-xl font-bold">About Flux TV</h2>
+                <h2 className="text-xl font-bold">About UniStream</h2>
               </div>
               <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
                 <X size={20} />
@@ -34,7 +34,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                   <Tv size={40} className="text-emerald-500" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Flux TV v1.0.0</h3>
+                  <h3 className="text-lg font-bold text-white">UniStream v1.0.0</h3>
                   <p className="text-sm text-zinc-500">The modern way to watch IPTV</p>
                 </div>
               </div>
@@ -43,7 +43,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                 <div className="p-4 bg-zinc-950 rounded-xl border border-zinc-800 space-y-2">
                   <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-400">How it works</h4>
                   <p className="text-sm text-zinc-300 leading-relaxed">
-                    Flux TV is a client-side M3U player. It parses your playlists and uses HLS.js for high-performance streaming.
+                    UniStream is a client-side M3U player. It parses your playlists and uses HLS.js for high-performance streaming.
                   </p>
                 </div>
 
@@ -53,7 +53,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ isOpen, onClose }) => {
                     <h4 className="text-xs font-bold uppercase tracking-widest">CORS & Privacy</h4>
                   </div>
                   <p className="text-sm text-zinc-300 leading-relaxed">
-                    Many streams block direct browser access. Flux TV includes a built-in proxy to bypass CORS restrictions and ensure your streams load reliably.
+                    Many streams block direct browser access. UniStream includes a built-in proxy to bypass CORS restrictions and ensure your streams load reliably.
                   </p>
                 </div>
               </div>
